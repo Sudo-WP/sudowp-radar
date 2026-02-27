@@ -1,6 +1,32 @@
 # Windows zone identifier files
 *:Zone.Identifier
+
+# Internal planning and handoff docs (not part of public plugin)
 HANDOFF.md
 RADAR-MVP-SPEC.md
-HANDOFF.md
-RADAR-MVP-SPEC.md
+
+# Dependencies
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and temp files
+*.log
+*.orig
+*.bak
+
+# Environment and credentials
+.env
+.env.*
+
+# Build artifacts
+/vendor/
+*.zip
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
