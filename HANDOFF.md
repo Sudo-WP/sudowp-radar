@@ -215,8 +215,8 @@ If sync fails, report the failure and the diff before ending the session.
 | Field | Value |
 |---|---|
 | Last sync | Never — awaiting M1 |
-| Last commit hash | — |
-| Sync result | — |
+| Last commit hash | 1705873 |
+| Sync result | SYNC OK |
 
 ---
 
