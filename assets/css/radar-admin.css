@@ -1,0 +1,229 @@
+/* SudoWP Radar -- Admin Styles */
+
+.radar-wrap {
+	max-width: 960px;
+}
+
+/* Dataset status banner */
+.radar-dataset-status {
+	display: inline-block;
+	padding: 6px 12px;
+	border-radius: 3px;
+	margin: 12px 0 16px;
+	font-size: 13px;
+}
+
+.radar-dataset-status.radar-free {
+	background: #f0f6fc;
+	border: 1px solid #c3d6e8;
+	color: #2271b1;
+}
+
+.radar-dataset-status.radar-premium {
+	background: #edfaef;
+	border: 1px solid #68de7c;
+	color: #1a7e2e;
+}
+
+/* Run Audit button */
+#radar-run-audit {
+	display: block;
+	margin-bottom: 24px;
+}
+
+/* Risk score display */
+.radar-risk-score {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin: 16px 0 24px;
+	padding: 12px 16px;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+
+.radar-risk-score__label {
+	font-size: 13px;
+	color: #50575e;
+}
+
+.radar-risk-score__value {
+	font-size: 28px;
+	font-weight: 600;
+	line-height: 1;
+}
+
+.radar-risk-score__value.score-low {
+	color: #1a7e2e;
+}
+
+.radar-risk-score__value.score-medium {
+	color: #996800;
+}
+
+.radar-risk-score__value.score-high {
+	color: #d63638;
+}
+
+/* Summary counts */
+.radar-summary {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-bottom: 24px;
+}
+
+.radar-summary__item {
+	padding: 8px 14px;
+	border-radius: 3px;
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.radar-summary__count {
+	font-size: 20px;
+	font-weight: 600;
+	display: block;
+	line-height: 1.2;
+}
+
+/* Severity badges */
+.radar-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.radar-badge--critical,
+.radar-summary__item--critical {
+	background: #fce8e8;
+	color: #8a1f1f;
+	border: 1px solid #f5c2c7;
+}
+
+.radar-badge--high,
+.radar-summary__item--high {
+	background: #fef3e2;
+	color: #7a4200;
+	border: 1px solid #f5c37f;
+}
+
+.radar-badge--medium,
+.radar-summary__item--medium {
+	background: #fefce0;
+	color: #614d00;
+	border: 1px solid #f0d500;
+}
+
+.radar-badge--low,
+.radar-summary__item--low {
+	background: #edfaef;
+	color: #1a7e2e;
+	border: 1px solid #68de7c;
+}
+
+.radar-badge--info,
+.radar-summary__item--info {
+	background: #f0f6fc;
+	color: #2271b1;
+	border: 1px solid #c3d6e8;
+}
+
+/* Findings list */
+.radar-findings {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.radar-finding {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-left-width: 4px;
+	border-radius: 4px;
+	padding: 14px 16px;
+	margin-bottom: 8px;
+}
+
+.radar-finding--critical {
+	border-left-color: #d63638;
+}
+
+.radar-finding--high {
+	border-left-color: #dba617;
+}
+
+.radar-finding--medium {
+	border-left-color: #f0d500;
+}
+
+.radar-finding--low {
+	border-left-color: #68de7c;
+}
+
+.radar-finding--info {
+	border-left-color: #72aee6;
+}
+
+.radar-finding__header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 6px;
+}
+
+.radar-finding__ability {
+	font-weight: 600;
+	font-size: 13px;
+	font-family: monospace;
+}
+
+.radar-finding__message {
+	font-size: 13px;
+	color: #1d2327;
+	margin: 0 0 6px;
+}
+
+.radar-finding__recommendation {
+	font-size: 12px;
+	color: #50575e;
+	margin: 0;
+}
+
+.radar-finding__recommendation::before {
+	content: "Fix: ";
+	font-weight: 600;
+}
+
+/* Empty state */
+.radar-no-findings {
+	padding: 24px;
+	text-align: center;
+	color: #1a7e2e;
+	background: #edfaef;
+	border: 1px solid #68de7c;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+/* Cached notice */
+.radar-cached-notice {
+	color: #50575e;
+	font-style: italic;
+	font-size: 12px;
+}
+
+/* Loading state */
+.radar-loading {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: #50575e;
+	font-size: 13px;
+	padding: 16px 0;
+}
