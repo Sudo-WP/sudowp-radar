@@ -36,6 +36,8 @@ class Rule_Engine {
 		$name     = $a['name'];
 
 		// No permission callback at all.
+		// Note: WP 6.9 requires a callable permission_callback at registration time.
+		// This branch is defensive code for future API changes or bypassed registration paths.
 		if ( null === $cb ) {
 			$findings[] = new Finding(
 				ability_name:   $name,
@@ -203,6 +205,10 @@ class Rule_Engine {
 		$name     = $a['name'];
 		$cb       = $a['execute_callback'];
 
+		// Note: WP 6.9 validates execute_callback is callable at registration time (WP_Ability::prepare_properties()).
+		// An ability in the live registry will always have a callable execute_callback.
+		// This rule is defensive code for future API changes, manual registry manipulation,
+		// or non-standard registration paths that bypass WP_Ability validation.
 		if ( null === $cb ) {
 			return $findings;
 		}
@@ -235,6 +241,9 @@ class Rule_Engine {
 		$findings = [];
 		$name     = $a['name'];
 
+		// Note: WP 6.9 rejects duplicate ability registrations -- the registry does NOT overwrite
+		// existing entries. Two abilities cannot share the same name via normal WP API usage.
+		// This rule is defensive code for future API changes or non-standard registration paths.
 		// Collision = two different abilities sharing the exact same name.
 		$same_name = array_filter( $all, fn( $other ) => $other['name'] === $name );
 		if ( count( $same_name ) > 1 ) {
