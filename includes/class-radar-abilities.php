@@ -8,7 +8,20 @@ defined( 'ABSPATH' ) || exit;
 class Abilities {
 
 	public function init(): void {
+		// Register the 'security' category before any abilities in it are registered.
+		// wp_abilities_api_categories_init fires before wp_abilities_api_init.
+		add_action( 'wp_abilities_api_categories_init', [ $this, 'register_category' ] );
 		add_action( 'wp_abilities_api_init', [ $this, 'register' ] );
+	}
+
+	public function register_category(): void {
+		wp_register_ability_category(
+			'security',
+			[
+				'label'       => __( 'Security', 'sudowp-radar' ),
+				'description' => __( 'Abilities related to site security auditing and monitoring.', 'sudowp-radar' ),
+			]
+		);
 	}
 
 	public function register(): void {
