@@ -44,6 +44,9 @@ class Admin {
 			true
 		);
 
+		// Fetch last report so JS can render it on page load without a separate AJAX call.
+		$last_report = get_user_meta( get_current_user_id(), '_radar_last_report', true );
+
 		// Localize only what JS needs -- never leak sensitive data.
 		wp_localize_script(
 			'radar-admin',
@@ -52,11 +55,14 @@ class Admin {
 				'ajax_url'       => admin_url( 'admin-ajax.php' ),
 				'nonce'          => wp_create_nonce( Ajax::NONCE_ACTION ),
 				'dataset_status' => Dataset::get_status(),
+				'last_report'    => $last_report ?: null,
 				'strings'        => [
-					'run_audit'   => __( 'Run Audit', 'sudowp-radar' ),
-					'running'     => __( 'Scanning...', 'sudowp-radar' ),
-					'no_findings' => __( 'No issues found. All abilities look clean.', 'sudowp-radar' ),
-					'error'       => __( 'Audit failed. Please try again.', 'sudowp-radar' ),
+					'run_audit'    => __( 'Run Audit', 'sudowp-radar' ),
+					'running'      => __( 'Scanning...', 'sudowp-radar' ),
+					'no_findings'  => __( 'No issues found. All abilities look clean.', 'sudowp-radar' ),
+					'error'        => __( 'Audit failed. Please try again.', 'sudowp-radar' ),
+					'rate_limited' => __( 'Please wait 30 seconds before running another audit.', 'sudowp-radar' ),
+					'no_permission' => __( 'You do not have permission to run this audit.', 'sudowp-radar' ),
 				],
 			]
 		);

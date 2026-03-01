@@ -177,9 +177,19 @@
 	margin-bottom: 6px;
 }
 
-.radar-finding__ability {
+.radar-finding__name {
 	font-weight: 600;
 	font-size: 13px;
+	font-family: monospace;
+}
+
+.radar-finding__vuln-class {
+	font-size: 11px;
+	color: #50575e;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	padding: 1px 6px;
 	font-family: monospace;
 }
 
