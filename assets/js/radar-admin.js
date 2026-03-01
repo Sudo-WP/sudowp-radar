@@ -93,7 +93,8 @@
 				'<li class="radar-finding radar-finding--' + esc( f.severity ) + '">' +
 					'<div class="radar-finding__header">' +
 						'<span class="radar-badge radar-badge--' + esc( f.severity ) + '">' + esc( f.severity ) + '</span>' +
-						'<span class="radar-finding__ability">' + esc( f.ability_name ) + '</span>' +
+						'<span class="radar-finding__name">' + esc( f.ability_name ) + '</span>' +
+						'<span class="radar-finding__vuln-class">' + esc( f.vuln_class ) + '</span>' +
 					'</div>' +
 					'<p class="radar-finding__message">' + esc( f.message ) + '</p>' +
 					'<p class="radar-finding__recommendation">' + esc( f.recommendation ) + '</p>' +
@@ -102,6 +103,15 @@
 		listHtml += '</ul>';
 
 		$results.append( listHtml );
+	}
+
+	/**
+	 * Shows an error message in #radar-results.
+	 */
+	function showError( msg ) {
+		$( '#radar-results' ).empty().append(
+			'<div class="notice notice-error inline"><p>' + esc( msg ) + '</p></div>'
+		);
 	}
 
 	/**
@@ -132,15 +142,17 @@
 					var msg = ( response && response.data && response.data.message )
 						? response.data.message
 						: config.strings.error;
-					$results.empty().append(
-						'<div class="notice notice-error inline"><p>' + esc( msg ) + '</p></div>'
-					);
+					showError( msg );
 				}
 			},
-			error: function () {
-				$results.empty().append(
-					'<div class="notice notice-error inline"><p>' + esc( config.strings.error ) + '</p></div>'
-				);
+			error: function ( xhr ) {
+				if ( xhr.status === 429 ) {
+					showError( config.strings.rate_limited );
+				} else if ( xhr.status === 403 ) {
+					showError( config.strings.no_permission );
+				} else {
+					showError( config.strings.error );
+				}
 			},
 			complete: function () {
 				$btn.prop( 'disabled', false ).text( config.strings.run_audit );
@@ -148,12 +160,17 @@
 		} );
 	}
 
-	// Bind events on DOM ready.
+	// Bind events and render any cached report on DOM ready.
 	$( function () {
 		$( '#radar-run-audit' ).on( 'click', function ( e ) {
 			e.preventDefault();
 			runAudit();
 		} );
+
+		// Render the last cached report immediately on page load if available.
+		if ( config.last_report && config.last_report.summary ) {
+			renderReport( config.last_report );
+		}
 	} );
 
 } ( jQuery, window.SudoWPRadar || {} ) );
