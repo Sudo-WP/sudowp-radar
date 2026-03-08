@@ -75,7 +75,7 @@ class Admin {
 
 		$last_report    = get_user_meta( get_current_user_id(), '_radar_last_report', true );
 		$dataset_status = Dataset::get_status();
-		$status_class   = esc_attr( $dataset_status['enabled'] ? 'radar-premium' : 'radar-free' );
+		$status_class   = $dataset_status['enabled'] ? 'radar-premium' : 'radar-free';
 		?>
 		<div class="wrap radar-wrap">
 			<h1><?php esc_html_e( 'SudoWP Radar', 'sudowp-radar' ); ?></h1>
