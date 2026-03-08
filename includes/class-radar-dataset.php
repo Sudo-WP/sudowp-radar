@@ -53,7 +53,7 @@ class Dataset {
 			'radar_dataset_status',
 			[
 				'enabled'       => false,
-				'label'         => __( 'SudoWP Vulnerability Dataset: Not connected. Upgrade to SudoWP Pro.', 'sudowp-radar' ),
+				'label'         => __( 'Vulnerability dataset: not active.', 'sudowp-radar' ),
 				'last_updated'  => null,
 				'total_entries' => 0,
 			]
