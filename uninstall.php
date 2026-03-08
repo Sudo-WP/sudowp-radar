@@ -6,6 +6,7 @@ delete_metadata( 'user', 0, '_radar_last_report', '', true );
 
 // Remove rate-limiting transients.
 global $wpdb;
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall routine. Caching a delete query on uninstall is not appropriate.
 $wpdb->query(
 	$wpdb->prepare(
 		"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",

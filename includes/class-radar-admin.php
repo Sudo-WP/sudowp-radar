@@ -80,7 +80,7 @@ class Admin {
 		<div class="wrap radar-wrap">
 			<h1><?php esc_html_e( 'SudoWP Radar', 'sudowp-radar' ); ?></h1>
 
-			<div class="radar-dataset-status <?php echo $status_class; ?>">
+			<div class="radar-dataset-status <?php echo esc_attr( $status_class ); ?>">
 				<?php echo esc_html( $dataset_status['label'] ); ?>
 			</div>
 

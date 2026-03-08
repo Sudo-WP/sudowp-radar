@@ -8,7 +8,7 @@ Stable tag: 1.0.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Security auditor for the WordPress 6.9+ Abilities API. Scans every registered ability for permission misconfigurations, input schema gaps, REST exposure risks, and namespace collisions.
+Security auditor for the WordPress Abilities API. Scans registered abilities for permission, schema, and exposure risks.
 
 == Description ==
 

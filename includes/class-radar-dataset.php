@@ -28,7 +28,7 @@ class Dataset {
 	 * Returns whether dataset lookups are enabled (premium feature).
 	 */
 	public static function is_enabled(): bool {
-		return (bool) apply_filters( self::FILTER_ENABLED, false );
+		return (bool) apply_filters( 'radar_dataset_enabled', false );
 	}
 
 	/**
@@ -39,7 +39,7 @@ class Dataset {
 	 * @return Finding[]
 	 */
 	public static function get_findings( array $ability ): array {
-		$findings = apply_filters( self::FILTER_FINDINGS, [], $ability );
+		$findings = apply_filters( 'radar_dataset_findings', [], $ability );
 
 		// Validate that whatever premium code returns are actual Finding objects.
 		return array_filter( $findings, fn( $f ) => $f instanceof Finding );
