@@ -2,7 +2,7 @@
 Contributors: sudowp
 Tags: security, abilities-api, audit, scanner, permissions
 Requires at least: 6.9
-Tested up to: 6.9
+Tested up to: 6.9.1
 Requires PHP: 8.1
 Stable tag: 1.0.0
 License: GPL-2.0-or-later
@@ -19,6 +19,7 @@ SudoWP Radar is a runtime security auditor for the WordPress 6.9 Abilities API. 
 * **Open and weak permissions** -- abilities with no permission_callback, or one that allows any authenticated user through.
 * **Missing or loose input schemas** -- abilities that accept unconstrained string inputs, creating potential injection vectors for path traversal, SSRF, and similar attacks.
 * **REST overexposure** -- abilities marked show_in_rest with no or open permission control, accessible to unauthenticated callers.
+* **MCP overexposure** -- abilities marked meta.mcp.public = true with a weak or null permission callback are directly callable by any connected AI agent. Flagged as CRITICAL.
 * **Orphaned callbacks** -- execute_callbacks that reference functions no longer loaded, often left behind by deactivated plugins.
 * **Namespace collisions** -- duplicate ability names where the last registration silently overwrites the first, potentially downgrading the permission model.
 
