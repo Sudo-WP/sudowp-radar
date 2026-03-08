@@ -14,6 +14,7 @@ Every registered ability is a potential entry point. SudoWP Radar inspects each 
 
 - Abilities with no permission check or a weak one (`__return_true`, `read`, `exist`)
 - Abilities exposed to the REST API or MCP without adequate access control
+- Abilities marked `meta.mcp.public = true` with a weak or null permission callback, making them directly callable by any connected AI agent
 - Input schemas that accept unconstrained strings on sensitive fields (`path`, `file`, `url`, `redirect`, `source`, `target`, `slug`)
 - Duplicate ability registrations that could silently downgrade permissions
 
@@ -58,6 +59,7 @@ SudoWP Radar is proactive. It audits the architecture of what is registered on y
 | No Input Schema | MEDIUM | Ability accepts input but declares no `input_schema` |
 | Loose Input Schema | HIGH | `input_schema` contains unconstrained string on a sensitive field name |
 | REST Overexposure | CRITICAL | `show_in_rest: true` with no or weak permission callback |
+| MCP Overexposure | CRITICAL | `meta.mcp.public: true` with no or weak permission callback -- ability callable by any connected AI agent |
 | Orphaned Callback | HIGH | `execute_callback` references a non-callable function |
 | Namespace Collision | HIGH | Two abilities registered with the same name |
 
@@ -101,7 +103,7 @@ The free plugin ships four WordPress filters that allow a premium layer to exten
 
 Tested against WordPress 6.9.1 and PHP 8.3. The Abilities API is not available below WP 6.9 -- the plugin will display an admin notice and deactivate gracefully on older installs.
 
-WP 6.9 validates both `execute_callback` and `permission_callback` as callable at registration time, which makes Rules 6 (orphaned callback) and 7 (namespace collision) unreachable via normal API usage in the current WordPress version. Both rules are retained as defensive code for future API changes.
+WP 6.9 validates both `execute_callback` and `permission_callback` as callable at registration time, which makes the Orphaned Callback and Namespace Collision rules unreachable via normal API usage in the current WordPress version. Both rules are retained as defensive code for future API changes.
 
 ---
 

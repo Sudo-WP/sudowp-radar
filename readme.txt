@@ -2,7 +2,7 @@
 Contributors: sudowp
 Tags: security, abilities-api, audit, scanner, permissions
 Requires at least: 6.9
-Tested up to: 6.9.1
+Tested up to: 6.9
 Requires PHP: 8.1
 Stable tag: 1.0.0
 License: GPL-2.0-or-later
@@ -25,7 +25,7 @@ SudoWP Radar is a runtime security auditor for the WordPress 6.9 Abilities API. 
 
 **How it works:**
 
-SudoWP Radar reads the live WP_Abilities_Registry after all plugins and themes have loaded. It applies static rules to each ability and returns a structured findings report with severity ratings (Critical, High, Medium, Low) and actionable remediation guidance. A risk score from 0-100 summarises the overall exposure of the site.
+SudoWP Radar reads the live abilities registry after all plugins and themes have loaded. It applies static rules to each ability and returns a structured findings report with severity ratings (Critical, High, Medium, Low) and actionable remediation guidance. A risk score from 0-100 summarises the overall exposure of the site.
 
 **Security model:**
 
@@ -68,7 +68,7 @@ The audit runs on demand only, triggered by clicking the "Run Audit" button on t
 
 = Is there a REST API? =
 
-SudoWP Radar registers a `sudowp-radar/audit` ability via the WP Abilities API, allowing MCP-connected AI agents to trigger audits programmatically. REST exposure is disabled by default (`show_in_rest: false`).
+SudoWP Radar registers a `sudowp-radar/audit` ability via the WP Abilities API, allowing MCP-connected AI agents to trigger audits programmatically. REST exposure is disabled by default.
 
 = What PHP version is required? =
 
@@ -78,7 +78,7 @@ PHP 8.1 or higher. The plugin uses constructor property promotion, readonly prop
 
 = 1.0.0 =
 * Initial release.
-* Scans abilities for open/weak permissions, missing input schemas, REST overexposure, orphaned callbacks, and namespace collisions.
+* Scans abilities for open/weak permissions, missing input schemas, REST overexposure, MCP overexposure, orphaned callbacks, and namespace collisions.
 * Admin page with Run Audit button and severity-sorted findings list.
 * Risk score from 0-100.
 * Premium dataset stub with four extension filters.
