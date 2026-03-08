@@ -20,6 +20,7 @@ class Rule_Engine {
 		$findings = array_merge( $findings, $this->rule_permission_callback( $ability ) );
 		$findings = array_merge( $findings, $this->rule_input_schema( $ability ) );
 		$findings = array_merge( $findings, $this->rule_rest_exposure( $ability ) );
+		$findings = array_merge( $findings, $this->rule_mcp_exposure( $ability ) );
 		$findings = array_merge( $findings, $this->rule_orphaned_callback( $ability ) );
 		$findings = array_merge( $findings, $this->rule_namespace_collision( $ability, $all ) );
 
@@ -190,6 +191,39 @@ class Rule_Engine {
 					esc_html( $name )
 				),
 				recommendation: __( 'Restrict REST-exposed abilities to at minimum is_user_logged_in() and preferably a specific capability like edit_posts.', 'sudowp-radar' ),
+			);
+		}
+
+		return $findings;
+	}
+
+	// -------------------------------------------------------------------------
+	// Rule: MCP Exposure vs Permission Level
+	// -------------------------------------------------------------------------
+
+	private function rule_mcp_exposure( array $a ): array {
+		$findings   = [];
+		$name       = $a['name'];
+		$mcp_public = $a['meta']['mcp.public'] ?? false;
+		$cb         = $a['permission_callback'];
+
+		if ( ! $mcp_public ) {
+			return $findings;
+		}
+
+		// MCP-public with no or open permission = critical.
+		// Any connected AI agent can execute this ability without authentication.
+		if ( null === $cb || ( is_string( $cb ) && '__return_true' === $cb ) ) {
+			$findings[] = new Finding(
+				ability_name:   $name,
+				severity:       Finding::SEVERITY_CRITICAL,
+				vuln_class:     Finding::VULN_MCP_OVEREXPOSURE,
+				message:        sprintf(
+					/* translators: %s: ability name */
+					__( 'Ability "%s" is exposed via MCP and has no or open permission_callback. Any connected AI agent can execute it without authentication.', 'sudowp-radar' ),
+					esc_html( $name )
+				),
+				recommendation: __( 'Restrict MCP-public abilities with a specific capability check. Never use __return_true or null permission_callback on an MCP-public ability.', 'sudowp-radar' ),
 			);
 		}
 

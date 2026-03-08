@@ -20,7 +20,8 @@ class Finding {
 	const VULN_REST_OVEREXPOSURE   = 'rest-overexposure';
 	const VULN_NAMESPACE_COLLISION = 'namespace-collision';
 	const VULN_ORPHANED_CALLBACK   = 'orphaned-callback';
-	const VULN_DATASET_MATCH       = 'dataset-match'; // Premium: SudoWP vulnerability dataset.
+	const VULN_DATASET_MATCH       = 'dataset-match';    // Premium: SudoWP vulnerability dataset.
+	const VULN_MCP_OVEREXPOSURE    = 'mcp-overexposure'; // MCP-public ability with open permission.
 
 	public function __construct(
 		public readonly string $ability_name,

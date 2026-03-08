@@ -87,3 +87,120 @@ PHP 8.1 or higher. The plugin uses constructor property promotion, readonly prop
 
 = 1.0.0 =
 Initial release.
+
+== Premium Extension Filters ==
+
+SudoWP Radar exposes four WordPress filters so a premium plugin can extend
+the audit engine without modifying core plugin files.
+
+= radar_dataset_enabled =
+
+Controls whether dataset lookups run during an audit. Return true to activate.
+
+  Parameters:
+    $enabled (bool) -- default false.
+  Returns:
+    bool
+
+  Example:
+
+    add_filter( 'radar_dataset_enabled', function ( bool $enabled ): bool {
+        return true; // Enable dataset lookups.
+    } );
+
+= radar_dataset_findings =
+
+Inject Finding objects from a vulnerability dataset for a specific ability.
+Called once per ability during an audit. Non-Finding return values are stripped.
+
+  Parameters:
+    $findings (array)  -- current Finding[] for this ability, default [].
+    $ability  (array)  -- ability data array from Scanner (name, meta, callbacks, etc.).
+  Returns:
+    Finding[]
+
+  Note: register with accepted_args=2 to receive both parameters.
+
+  Example:
+
+    add_filter(
+        'radar_dataset_findings',
+        function ( array $findings, array $ability ): array {
+            if ( str_starts_with( $ability['name'], 'my-plugin/' ) ) {
+                $findings[] = new \SudoWP\Radar\Finding(
+                    ability_name:   $ability['name'],
+                    severity:       \SudoWP\Radar\Finding::SEVERITY_CRITICAL,
+                    vuln_class:     \SudoWP\Radar\Finding::VULN_DATASET_MATCH,
+                    message:        'Known vulnerable ability pattern detected (CVE-2026-1234).',
+                    recommendation: 'Update my-plugin to version 2.1.0 or later.',
+                    is_premium:     true,
+                );
+            }
+            return $findings;
+        },
+        10,
+        2
+    );
+
+= radar_dataset_status =
+
+Override the dataset status array displayed in the admin UI.
+
+  Parameters:
+    $status (array) -- default status with keys:
+      enabled       (bool)        -- false in free version.
+      label         (string)      -- UI display string.
+      last_updated  (string|null) -- ISO 8601 date or null.
+      total_entries (int)         -- 0 in free version.
+  Returns:
+    array (same shape as input)
+
+  Example:
+
+    add_filter( 'radar_dataset_status', function ( array $status ): array {
+        return [
+            'enabled'       => true,
+            'label'         => 'SudoWP Vulnerability Dataset: Connected. 4,821 entries.',
+            'last_updated'  => '2026-03-08',
+            'total_entries' => 4821,
+        ];
+    } );
+
+= radar_audit_findings =
+
+Modify the complete findings array after all rules and dataset lookups have run.
+Use this to add cross-ability findings, re-score existing findings, or suppress
+false positives. Called once per full audit run.
+
+  Parameters:
+    $findings  (array) -- complete Finding[] from the full audit.
+    $abilities (array) -- all ability data arrays scanned during this audit.
+  Returns:
+    Finding[]
+
+  Note: register with accepted_args=2 to receive both parameters.
+
+  Example:
+
+    add_filter(
+        'radar_audit_findings',
+        function ( array $findings, array $abilities ): array {
+            // Example: promote medium findings to high for a high-risk site.
+            return array_map( function ( $finding ) {
+                if ( $finding->severity === \SudoWP\Radar\Finding::SEVERITY_MEDIUM ) {
+                    return new \SudoWP\Radar\Finding(
+                        ability_name:   $finding->ability_name,
+                        severity:       \SudoWP\Radar\Finding::SEVERITY_HIGH,
+                        vuln_class:     $finding->vuln_class,
+                        message:        $finding->message,
+                        recommendation: $finding->recommendation,
+                        context:        $finding->context,
+                        is_premium:     $finding->is_premium,
+                    );
+                }
+                return $finding;
+            }, $findings );
+        },
+        10,
+        2
+    );
