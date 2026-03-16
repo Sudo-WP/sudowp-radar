@@ -37,10 +37,10 @@ if ( ! function_exists( 'wp_register_ability' ) ) {
 }
 
 // Constants.
-define( 'RADAR_VERSION',     '1.0.0' );
-define( 'RADAR_PLUGIN_FILE', __FILE__ );
-define( 'RADAR_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
-define( 'RADAR_PLUGIN_URL',  plugin_dir_url( __FILE__ ) );
+define( 'SUDOWP_RADAR_VERSION',     '1.0.0' );
+define( 'SUDOWP_RADAR_PLUGIN_FILE', __FILE__ );
+define( 'SUDOWP_RADAR_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
+define( 'SUDOWP_RADAR_PLUGIN_URL',  plugin_dir_url( __FILE__ ) );
 // Autoloader.
 // Note: namespace separator is backslash; double-escaped in single-quoted string.
 spl_autoload_register(
@@ -50,7 +50,7 @@ spl_autoload_register(
 			return;
 		}
 		$relative = substr( $class, strlen( $prefix ) );
-		$file     = RADAR_PLUGIN_DIR . 'includes/class-radar-' . strtolower( str_replace( '_', '-', $relative ) ) . '.php';
+		$file     = SUDOWP_RADAR_PLUGIN_DIR . 'includes/class-radar-' . strtolower( str_replace( '_', '-', $relative ) ) . '.php';
 		if ( file_exists( $file ) ) {
 			require_once $file;
 		}

@@ -31,16 +31,16 @@ class Admin {
 
 		wp_enqueue_style(
 			'radar-admin',
-			RADAR_PLUGIN_URL . 'assets/css/radar-admin.css',
+			SUDOWP_RADAR_PLUGIN_URL . 'assets/css/radar-admin.css',
 			[],
-			RADAR_VERSION
+			SUDOWP_RADAR_VERSION
 		);
 
 		wp_enqueue_script(
 			'radar-admin',
-			RADAR_PLUGIN_URL . 'assets/js/radar-admin.js',
+			SUDOWP_RADAR_PLUGIN_URL . 'assets/js/radar-admin.js',
 			[ 'jquery' ],
-			RADAR_VERSION,
+			SUDOWP_RADAR_VERSION,
 			true
 		);
 

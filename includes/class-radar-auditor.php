@@ -38,6 +38,7 @@ class Auditor {
 
 		// Allow third-party or premium code to add/modify findings.
 		$findings = apply_filters( 'radar_audit_findings', $findings, $abilities );
+		$findings = array_filter($findings, function($f) { return $f instanceof Finding; });
 
 		return new Report( $findings, $abilities );
 	}
