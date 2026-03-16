@@ -4,7 +4,7 @@ Tags: security, abilities-api, audit, scanner, permissions
 Requires at least: 6.9
 Tested up to: 6.9
 Requires PHP: 8.1
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,10 @@ SudoWP Radar registers a `sudowp-radar/audit` ability via the WP Abilities API, 
 PHP 8.1 or higher. The plugin uses constructor property promotion, readonly properties, and named arguments.
 
 == Changelog ==
+
+= 1.0.1 =
+* Security: Added filter output validation to ensure only Finding instances are processed.
+* Hardening: Prefixed all constants from RADAR_* to SUDOWP_RADAR_* to prevent namespace collisions.
 
 = 1.0.0 =
 * Initial release.

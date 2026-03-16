@@ -3,7 +3,7 @@
  * Plugin Name: SudoWP Radar
  * Plugin URI:  https://sudowp.com/sudowp-radar
  * Description: Security auditor for the WordPress 6.9+ Abilities API. Scans every registered ability for permission misconfigurations, input schema gaps, REST exposure risks, and namespace collisions.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      SudoWP
  * Author URI:  https://sudowp.com
  * License:     GPL-2.0-or-later
