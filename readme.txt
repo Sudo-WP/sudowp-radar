@@ -34,12 +34,9 @@ SudoWP Radar reads the live abilities registry after all plugins and themes have
 * Audit findings are stored in user meta, not global options.
 * Rate-limited to one audit per 30 seconds per user.
 
-**Premium features (via SudoWP Pro):**
+**Optional premium extension (SudoWP Pro):**
 
-* SudoWP Vulnerability Dataset matching -- cross-references registered abilities against a curated database of known-vulnerable ability patterns, with CVE references, CVSS scores, and patch guidance.
-* Scheduled audits with email alerts.
-* Multi-site dashboard aggregation.
-* PDF and CSV report export.
+The free plugin is a fully functional standalone security auditor. An optional premium add-on extends it with SudoWP Vulnerability Dataset matching (CVE references, CVSS scores, patch guidance), scheduled audits with email alerts, multi-site dashboard aggregation, and report export. None of these are required to use the core auditing features.
 
 SudoWP Radar is a complement to static analysis tools. It audits the live, runtime state of your site -- what is actually registered and executing -- not just what is declared in code.
 
