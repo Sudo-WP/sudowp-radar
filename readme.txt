@@ -1,5 +1,5 @@
 === SudoWP Radar ===
-Contributors: sudowp
+Contributors: sudowp, thewebcitizen
 Tags: security, abilities-api, audit, scanner, permissions
 Requires at least: 6.9
 Tested up to: 6.9
