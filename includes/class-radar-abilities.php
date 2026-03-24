@@ -50,12 +50,70 @@ class Abilities {
 		);
 	}
 
-	public function execute_audit(): array {
+	public function execute_audit(): array|\WP_Error {
 		if ( ! current_user_can( Capabilities::RUN_AUDIT ) ) {
 			return [ 'error' => __( 'Insufficient permissions.', 'sudowp-radar' ) ];
 		}
 
+		// Rate limiting -- same transient pattern as AJAX handler.
+		$user_id       = get_current_user_id();
+		$transient_key = 'radar_last_audit_' . $user_id;
+
+		if ( get_transient( $transient_key ) ) {
+			return new \WP_Error(
+				'rate_limited',
+				__( 'Rate limit exceeded. Please wait 30 seconds between audit requests.', 'sudowp-radar' )
+			);
+		}
+
+		set_transient( $transient_key, time(), 30 );
+
 		$auditor = new Auditor( new Scanner(), new Rule_Engine() );
-		return $auditor->run()->to_array();
+		$report  = $auditor->run();
+		$data    = $report->to_array();
+
+		// Build agent-oriented summary block.
+		$findings = $report->get_findings();
+
+		$by_severity = [
+			'critical' => 0,
+			'high'     => 0,
+			'medium'   => 0,
+			'low'      => 0,
+			'info'     => 0,
+		];
+		foreach ( $findings as $f ) {
+			if ( isset( $by_severity[ $f->severity ] ) ) {
+				++$by_severity[ $f->severity ];
+			}
+		}
+
+		$severity_order = [ 'critical', 'high', 'medium', 'low', 'info' ];
+		$highest        = 'none';
+		foreach ( $severity_order as $level ) {
+			if ( $by_severity[ $level ] > 0 ) {
+				$highest = $level;
+				break;
+			}
+		}
+
+		if ( $by_severity['critical'] > 0 || $by_severity['high'] > 0 ) {
+			$recommended_action = 'immediate_review';
+		} elseif ( $by_severity['medium'] > 0 ) {
+			$recommended_action = 'scheduled_review';
+		} else {
+			$recommended_action = 'no_action_required';
+		}
+
+		$data['summary'] = [
+			'total_findings'     => count( $findings ),
+			'by_severity'        => $by_severity,
+			'highest_severity'   => $highest,
+			'audit_timestamp'    => ( new \DateTimeImmutable( 'now', new \DateTimeZone( 'UTC' ) ) )->format( \DateTimeInterface::ATOM ),
+			'abilities_scanned'  => $report->get_total_abilities(),
+			'recommended_action' => $recommended_action,
+		];
+
+		return $data;
 	}
 }

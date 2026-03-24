@@ -36,6 +36,10 @@ class Auditor {
 			}
 		}
 
+		// WP 7.0+ AI Client surface rules (silently skipped on WP < 7.0).
+		$ai_findings = $this->rule_engine->evaluate_ai_client_surface();
+		$findings    = array_merge( $findings, $ai_findings );
+
 		// Allow third-party or premium code to add/modify findings.
 		$findings = apply_filters( 'radar_audit_findings', $findings, $abilities );
 		$findings = array_filter($findings, function($f) { return $f instanceof Finding; });

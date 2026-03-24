@@ -22,6 +22,11 @@ class Finding {
 	const VULN_ORPHANED_CALLBACK   = 'orphaned-callback';
 	const VULN_DATASET_MATCH       = 'dataset-match';    // Premium: SudoWP vulnerability dataset.
 	const VULN_MCP_OVEREXPOSURE    = 'mcp-overexposure'; // MCP-public ability with open permission.
+	const VULN_AI_PREVENT_FILTER_BYPASS = 'ai-prevent-filter-bypass';
+	const VULN_AI_REST_OVEREXPOSURE     = 'ai-rest-overexposure';
+	const VULN_AI_MISSING_VERSION_GATE  = 'ai-missing-version-gate';
+
+	private string $remediation_hint = '';
 
 	public function __construct(
 		public readonly string $ability_name,
@@ -33,15 +38,24 @@ class Finding {
 		public readonly bool   $is_premium = false, // True for findings from SudoWP dataset.
 	) {}
 
+	public function get_remediation_hint(): string {
+		return $this->remediation_hint;
+	}
+
+	public function set_remediation_hint( string $hint ): void {
+		$this->remediation_hint = $hint;
+	}
+
 	public function to_array(): array {
 		return [
-			'ability_name'   => $this->ability_name,
-			'severity'       => $this->severity,
-			'vuln_class'     => $this->vuln_class,
-			'message'        => $this->message,
-			'recommendation' => $this->recommendation,
-			'context'        => $this->context,
-			'is_premium'     => $this->is_premium,
+			'ability_name'     => $this->ability_name,
+			'severity'         => $this->severity,
+			'vuln_class'       => $this->vuln_class,
+			'message'          => $this->message,
+			'recommendation'   => $this->recommendation,
+			'remediation_hint' => $this->remediation_hint,
+			'context'          => $this->context,
+			'is_premium'       => $this->is_premium,
 		];
 	}
 }

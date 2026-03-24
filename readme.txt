@@ -4,7 +4,7 @@ Tags: security, abilities-api, audit, scanner, permissions
 Requires at least: 6.9
 Tested up to: 6.9
 Requires PHP: 8.1
-Stable tag: 1.0.1
+Stable tag: 1.1.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,6 +22,9 @@ SudoWP Radar is a runtime security auditor for the WordPress 6.9 Abilities API. 
 * **MCP overexposure** -- abilities marked meta.mcp.public = true with a weak or null permission callback are directly callable by any connected AI agent. Flagged as CRITICAL.
 * **Orphaned callbacks** -- execute_callbacks that reference functions no longer loaded, often left behind by deactivated plugins.
 * **Namespace collisions** -- duplicate ability names where the last registration silently overwrites the first, potentially downgrading the permission model.
+* **AI prompt filter bypass** (WP 7.0+) -- callbacks on wp_ai_client_prevent_prompt that unconditionally return false, disabling the AI prompt prevention gate sitewide. Flagged as HIGH.
+* **AI REST overexposure** (WP 7.0+) -- REST endpoints that call wp_ai_client_prompt() with no or weak permission callbacks. Flagged as CRITICAL or HIGH.
+* **AI missing version gate** (WP 7.0+) -- plugins that call wp_ai_client_prompt() without a function_exists compatibility check, causing fatal errors on WP < 7.0. Flagged as MEDIUM.
 
 **How it works:**
 
@@ -73,6 +76,15 @@ PHP 8.1 or higher. The plugin uses constructor property promotion, readonly prop
 
 == Changelog ==
 
+= 1.1.0 =
+* Feature: Summary block added to sudowp-radar/audit ability response for AI agents (total_findings, by_severity, highest_severity, audit_timestamp, abilities_scanned, recommended_action).
+* Feature: Remediation hints added to all Finding objects with actionable one-line guidance.
+* Feature: AI prompt filter bypass rule (HIGH) -- detects wp_ai_client_prevent_prompt callbacks that unconditionally return false. WP 7.0+ only.
+* Feature: AI REST overexposure rule (CRITICAL/HIGH) -- detects REST endpoints calling wp_ai_client_prompt() with weak or missing permission checks. WP 7.0+ only.
+* Feature: AI missing version gate rule (MEDIUM) -- detects plugins calling wp_ai_client_prompt() without a function_exists guard. WP 7.0+ only.
+* Security: Rate limiting added to ability execute callback (30-second cooldown per user).
+* Note: All WP 7.0 rules are silently skipped on WP 6.9 sites -- zero noise, zero errors.
+
 = 1.0.1 =
 * Security: Added filter output validation to ensure only Finding instances are processed.
 * Hardening: Prefixed all constants from RADAR_* to SUDOWP_RADAR_* to prevent namespace collisions.
@@ -86,6 +98,9 @@ PHP 8.1 or higher. The plugin uses constructor property promotion, readonly prop
 * Registers `sudowp-radar/audit` ability for MCP agent access.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+Adds AI agent summary block, remediation hints on all findings, rate limiting on ability callback, and three new WP 7.0 AI Client surface rules.
 
 = 1.0.0 =
 Initial release.
