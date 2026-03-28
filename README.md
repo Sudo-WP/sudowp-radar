@@ -63,6 +63,16 @@ SudoWP Radar is proactive. It audits the architecture of what is registered on y
 | Orphaned Callback | HIGH | `execute_callback` references a non-callable function |
 | Namespace Collision | HIGH | Two abilities registered with the same name |
 
+### WP 7.0 AI Client Surface Rules
+
+These rules run only on WordPress 7.0+ where the AI Client API is available. They are silently skipped on earlier versions.
+
+| Rule | Severity | Description |
+|------|----------|-------------|
+| AI Prompt Filter Bypass | HIGH | Callback on `wp_ai_client_prevent_prompt` unconditionally returns false, disabling the AI prompt prevention gate sitewide |
+| AI REST Overexposure | CRITICAL / HIGH | REST endpoint calls `wp_ai_client_prompt()` with no or weak permission callback |
+| AI Missing Version Gate | MEDIUM | Plugin calls `wp_ai_client_prompt()` without a `function_exists` compatibility check |
+
 ---
 
 ## MCP Integration
@@ -70,6 +80,8 @@ SudoWP Radar is proactive. It audits the architecture of what is registered on y
 SudoWP Radar registers its own ability (`sudowp-radar/audit`) so an AI agent connected to your WordPress site via MCP can trigger a full security audit natively.
 
 The ability is REST-disabled by default. It requires the custom `radar_run_audit` capability.
+
+Since v1.1.0, the ability response includes a structured summary block (`total_findings`, `by_severity`, `highest_severity`, `audit_timestamp`, `abilities_scanned`, `recommended_action`) and remediation hints on every finding, so agents can act on results without parsing raw data.
 
 ---
 
@@ -101,9 +113,11 @@ The free plugin ships four WordPress filters that allow a premium layer to exten
 
 ## Compatibility Notes
 
-Tested against WordPress 6.9.1 and PHP 8.3. The Abilities API is not available below WP 6.9 -- the plugin will display an admin notice and deactivate gracefully on older installs.
+Tested against WordPress 6.9.4 and PHP 8.3. The Abilities API is not available below WP 6.9 -- the plugin will display an admin notice and deactivate gracefully on older installs.
 
 WP 6.9 validates both `execute_callback` and `permission_callback` as callable at registration time, which makes the Orphaned Callback and Namespace Collision rules unreachable via normal API usage in the current WordPress version. Both rules are retained as defensive code for future API changes.
+
+The three WP 7.0 AI Client rules are gated behind `function_exists('wp_ai_client_prompt')`. On WP 6.9 they produce zero findings and zero errors.
 
 ---
 
