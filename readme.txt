@@ -4,7 +4,7 @@ Tags: security, abilities-api, audit, scanner, permissions
 Requires at least: 6.9
 Tested up to: 6.9
 Requires PHP: 8.1
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -74,7 +74,33 @@ SudoWP Radar registers a `sudowp-radar/audit` ability via the WP Abilities API, 
 
 PHP 8.1 or higher. The plugin uses constructor property promotion, readonly properties, and named arguments.
 
+== External Services ==
+
+When an API key is configured, SudoWP Radar connects to the SudoWP vulnerability
+dataset API (api.sudowp.com) to retrieve patch availability information for
+registered WordPress abilities.
+
+No data is transmitted without an API key being explicitly entered by the site
+administrator. When no key is present, the plugin makes zero external network
+requests.
+
+Data sent to the API: the ability name being looked up and your API key.
+No personal data, no site URL, no user data is transmitted.
+
+API key registration: https://sudowp.com/get-api-key/
+Terms of service: https://sudowp.com/tos/
+Privacy policy: https://sudowp.com/privacy-policy/
+
 == Changelog ==
+
+= 1.2.0 =
+* Added optional SudoWP vulnerability dataset integration
+* Dataset lookup adds patch availability and remediation links to matching audit findings
+* API key settings field added to Radar Settings -- dataset is disabled when no key is present
+* Free tier: 100 lookups per day. Paid tier: unlimited.
+* Key registration: https://sudowp.com/get-api-key/
+* All plugin code remains fully open source -- the dataset is an external service
+* Added External Services disclosure per WordPress.org guidelines
 
 = 1.1.0 =
 * Feature: Summary block added to sudowp-radar/audit ability response for AI agents (total_findings, by_severity, highest_severity, audit_timestamp, abilities_scanned, recommended_action).
@@ -98,6 +124,9 @@ PHP 8.1 or higher. The plugin uses constructor property promotion, readonly prop
 * Registers `sudowp-radar/audit` ability for MCP agent access.
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+Adds optional SudoWP vulnerability dataset integration with API key settings field. Core audit is fully functional without a key.
 
 = 1.1.0 =
 Adds AI agent summary block, remediation hints on all findings, rate limiting on ability callback, and three new WP 7.0 AI Client surface rules.
