@@ -1,8 +1,8 @@
 # SudoWP Radar
 
-A WordPress security scanner built for the **WordPress 6.9 Abilities API**.
+WordPress 7.0 introduced a new AI attack surface. Every plugin that registers an ability on your site declares a structured entry point for AI agents and MCP tools. SudoWP Radar audits that surface at runtime, flagging misconfigurations before they become incidents.
 
-Every plugin that registers abilities on a WP 6.9+ site declares a structured attack surface. SudoWP Radar audits that surface at runtime, flagging misconfigurations before they become CVEs.
+It sits between reactive CVE scanners (which wait for a vulnerability to be disclosed) and developer-side static analysis tools (which run before deployment). Radar audits what is actually registered and executing on your live site, right now.
 
 ---
 

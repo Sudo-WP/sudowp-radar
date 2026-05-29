@@ -12,38 +12,84 @@ Security auditor for the WordPress Abilities API. Scans registered abilities for
 
 == Description ==
 
-SudoWP Radar is a runtime security auditor for the WordPress 6.9 Abilities API. It scans every registered ability across all active plugins and themes, applying a rule engine that detects the vulnerability patterns most likely to be exploited in production.
+WordPress 7.0 introduced a new AI attack surface. Every plugin that registers
+an ability on your site declares a structured entry point for AI agents and MCP
+tools. SudoWP Radar audits that surface at runtime, flagging misconfigurations
+before they become incidents.
 
-**What it audits:**
+It sits between reactive CVE scanners (which wait for a vulnerability to be
+disclosed) and developer-side static analysis tools (which run before deployment).
+Radar audits what is actually registered and executing on your live site, right now.
 
-* **Open and weak permissions** -- abilities with no permission_callback, or one that allows any authenticated user through.
-* **Missing or loose input schemas** -- abilities that accept unconstrained string inputs, creating potential injection vectors for path traversal, SSRF, and similar attacks.
-* **REST overexposure** -- abilities marked show_in_rest with no or open permission control, accessible to unauthenticated callers.
-* **MCP overexposure** -- abilities marked meta.mcp.public = true with a weak or null permission callback are directly callable by any connected AI agent. Flagged as CRITICAL.
-* **Orphaned callbacks** -- execute_callbacks that reference functions no longer loaded, often left behind by deactivated plugins.
-* **Namespace collisions** -- duplicate ability names where the last registration silently overwrites the first, potentially downgrading the permission model.
-* **AI prompt filter bypass** (WP 7.0+) -- callbacks on wp_ai_client_prevent_prompt that unconditionally return false, disabling the AI prompt prevention gate sitewide. Flagged as HIGH.
-* **AI REST overexposure** (WP 7.0+) -- REST endpoints that call wp_ai_client_prompt() with no or weak permission callbacks. Flagged as CRITICAL or HIGH.
-* **AI missing version gate** (WP 7.0+) -- plugins that call wp_ai_client_prompt() without a function_exists compatibility check, causing fatal errors on WP < 7.0. Flagged as MEDIUM.
-* **Hosting-injected ability** (WP 7.0+) -- abilities registered by hosting-provider auto-installed plugins with REST exposure, without explicit site administrator consent. Flagged as HIGH. Requires premium vendor slug list.
-* **Connector key in database** (WP 7.0+) -- AI connector API keys stored as plaintext in the WordPress database via the WP 7.0 Connectors API, rather than as environment variables or PHP constants. Flagged as HIGH.
+= What it audits =
 
-**How it works:**
+**Core ability rules (WP 6.9+)**
 
-SudoWP Radar reads the live abilities registry after all plugins and themes have loaded. It applies static rules to each ability and returns a structured findings report with severity ratings (Critical, High, Medium, Low) and actionable remediation guidance. A risk score from 0-100 summarises the overall exposure of the site.
+* Open and weak permissions -- abilities with no permission_callback, or one that
+  passes any authenticated user through regardless of role.
+* Missing or loose input schemas -- abilities that accept unconstrained string
+  inputs on fields like path, file, url, redirect, or slug. Common injection
+  vector for path traversal and SSRF.
+* REST overexposure -- abilities marked show_in_rest with no or open permission
+  control, reachable by unauthenticated callers.
+* Orphaned callbacks -- execute_callbacks referencing functions no longer loaded,
+  typically left behind by deactivated plugins.
+* Namespace collisions -- duplicate ability names where the last registration
+  silently overwrites the first, potentially downgrading the permission model.
 
-**Security model:**
+**AI agent rules (WP 7.0+)**
 
-* Requires the `radar_run_audit` capability (granted to site administrators by default).
-* All audit requests are nonce-gated. No public-facing endpoints.
-* Audit findings are stored in user meta, not global options.
+* AI prompt filter bypass (HIGH) -- a plugin has disabled the sitewide AI prompt
+  prevention gate. Any AI agent connected to your site bypasses this control.
+* AI REST overexposure (CRITICAL/HIGH) -- REST endpoints that invoke the AI client
+  with no or weak permission checks. Directly exploitable by unauthenticated callers.
+* AI missing version gate (MEDIUM) -- plugins calling the WP 7.0 AI client without
+  a compatibility check, causing fatal errors on sites not yet running 7.0.
+* Hosting-injected ability (HIGH) -- an ability registered by a plugin auto-installed
+  by your hosting provider, without explicit site administrator consent, with REST
+  exposure enabled. Requires premium vendor slug list via the SudoWP dataset.
+* Connector key in database (HIGH) -- an AI provider API key (OpenAI, Anthropic,
+  Google, or similar) is stored as plaintext in your WordPress database via the
+  WP 7.0 Connectors API. Any SQL injection or object cache exposure on your site
+  leaks this key directly. The fix is to define it as an environment variable or
+  PHP constant instead.
+
+= Why this matters now =
+
+WordPress 7.0 ships with native AI agent integration. Plugins can now register
+abilities that AI agents call directly, expose AI endpoints over REST, and connect
+to external AI providers via the Connectors API. Each of these is a new attack
+surface that existing security scanners do not cover -- they match known CVEs,
+they do not audit AI agent architecture.
+
+Some hosting providers have begun auto-installing AI agent plugins on customer
+sites without explicit consent. If one of those plugins registers abilities with
+REST exposure, or stores an AI provider key in your database, Radar flags it.
+
+= How it works =
+
+Radar reads the live abilities registry after all plugins and themes have loaded.
+It applies its rule engine to each registered ability and returns a findings report
+with severity ratings (CRITICAL, HIGH, MEDIUM, LOW) and specific remediation
+guidance per finding. A risk score from 0-100 summarises the overall exposure.
+
+The audit runs on demand. It does not affect front-end performance.
+
+= Security model =
+
+* Requires the radar_run_audit capability (administrators by default).
+* All requests are nonce-gated. No public-facing endpoints.
+* Findings are stored in user meta, not global options.
 * Rate-limited to one audit per 30 seconds per user.
 
-**Optional premium extension (SudoWP Pro):**
+= Free vs premium =
 
-The free plugin is a fully functional standalone security auditor. An optional premium add-on extends it with SudoWP Vulnerability Dataset matching (CVE references, CVSS scores, patch guidance), scheduled audits with email alerts, multi-site dashboard aggregation, and report export. None of these are required to use the core auditing features.
+The free plugin is a fully functional standalone auditor. An optional premium
+add-on (SudoWP Pro) extends it with vulnerability dataset matching (CVE references,
+CVSS scores, patch guidance), the hosting-injected vendor slug list, scheduled
+audits with email alerts, multi-site dashboard aggregation, and report export.
 
-SudoWP Radar is a complement to static analysis tools. It audits the live, runtime state of your site -- what is actually registered and executing -- not just what is declared in code.
+None of the premium features are required to run the core audit.
 
 == Installation ==
 
@@ -54,27 +100,70 @@ SudoWP Radar is a complement to static analysis tools. It audits the live, runti
 
 WordPress 6.9 or higher is required. The plugin will display an admin notice and deactivate gracefully on older versions.
 
-== Frequently Asked Questions ==
+== FAQ ==
 
-= Does this plugin modify my site? =
+= Do I need WordPress 7.0 to use this plugin? =
 
-No. SudoWP Radar is a read-only auditor. It reads the Abilities registry and reports findings. It does not modify any registered abilities, alter plugin settings, or write to the database (other than storing the last audit report in your own user meta).
+No. The core audit rules work on WordPress 6.9 and higher. The five AI agent rules
+(AI prompt filter bypass, AI REST overexposure, AI missing version gate,
+hosting-injected ability, connector key in database) are silently skipped on sites
+running below 7.0 -- no errors, no noise. If you are running 7.0, those rules
+activate automatically.
+
+= What is the WordPress Abilities API? =
+
+The Abilities API, introduced in WordPress 6.9, is the layer that allows AI agents
+and MCP tools to interact with your site programmatically. Plugins register named
+abilities with permission callbacks and input schemas. When an AI agent connects
+to your site, it can call these abilities directly. A misconfigured ability is a
+direct entry point -- not a theoretical risk.
+
+= A plugin was auto-installed on my site by my hosting provider. Should I be concerned? =
+
+Possibly. Some hosting providers auto-install AI agent plugins on customer sites
+without explicit consent. If that plugin registers abilities with REST exposure, or
+stores an AI provider key in your database, it expands your AI attack surface
+without your knowledge. Run a Radar audit to check. The hosting-injected ability
+rule (premium) and connector key in database rule (free) are designed to catch
+exactly this scenario.
+
+= What does the "Connector key in database" finding mean? =
+
+WordPress 7.0 introduces a Connectors API that lets plugins register AI provider
+integrations (OpenAI, Anthropic, Google, and others). If the API key for one of
+these connectors was entered through the WordPress admin UI rather than defined as
+an environment variable or PHP constant, it is stored as plaintext in your database.
+Any SQL injection vulnerability or object cache exposure on your site would expose
+that key directly. The finding tells you which connector is affected and how to
+move the key to a safer location.
 
 = What does a "Critical" finding mean? =
 
-Critical findings are abilities that any authenticated (or in some cases unauthenticated) user can execute. These represent the highest risk and should be addressed before lower severity findings.
+A Critical finding is an ability or endpoint that any user -- in some cases an
+unauthenticated visitor -- can call directly. This is the highest severity level
+and should be addressed before anything else.
+
+= Does this plugin modify my site? =
+
+No. Radar is a read-only auditor. It reads the Abilities registry and reports
+findings. It does not modify any registered abilities, alter plugin settings, or
+write to the database other than storing the last audit report in your own user meta.
 
 = Will this slow down my site? =
 
-The audit runs on demand only, triggered by clicking the "Run Audit" button on the admin page. It does not run automatically and has no effect on front-end performance.
+No. The audit runs on demand only, triggered by clicking Run Audit in the admin.
+It does not run automatically and has no effect on front-end performance.
 
 = Is there a REST API? =
 
-SudoWP Radar registers a `sudowp-radar/audit` ability via the WP Abilities API, allowing MCP-connected AI agents to trigger audits programmatically. REST exposure is disabled by default.
+Radar registers a sudowp-radar/audit ability via the WP Abilities API, allowing
+MCP-connected AI agents to trigger audits programmatically. REST exposure is
+disabled by default -- the ability is only reachable by MCP agents with the
+appropriate permission, not by unauthenticated REST callers.
 
 = What PHP version is required? =
 
-PHP 8.1 or higher. The plugin uses constructor property promotion, readonly properties, and named arguments.
+PHP 8.1 or higher.
 
 == External Services ==
 
@@ -144,120 +233,3 @@ Adds AI agent summary block, remediation hints on all findings, rate limiting on
 
 = 1.0.0 =
 Initial release.
-
-== Premium Extension Filters ==
-
-SudoWP Radar exposes four WordPress filters so a premium plugin can extend
-the audit engine without modifying core plugin files.
-
-= radar_dataset_enabled =
-
-Controls whether dataset lookups run during an audit. Return true to activate.
-
-  Parameters:
-    $enabled (bool) -- default false.
-  Returns:
-    bool
-
-  Example:
-
-    add_filter( 'radar_dataset_enabled', function ( bool $enabled ): bool {
-        return true; // Enable dataset lookups.
-    } );
-
-= radar_dataset_findings =
-
-Inject Finding objects from a vulnerability dataset for a specific ability.
-Called once per ability during an audit. Non-Finding return values are stripped.
-
-  Parameters:
-    $findings (array)  -- current Finding[] for this ability, default [].
-    $ability  (array)  -- ability data array from Scanner (name, meta, callbacks, etc.).
-  Returns:
-    Finding[]
-
-  Note: register with accepted_args=2 to receive both parameters.
-
-  Example:
-
-    add_filter(
-        'radar_dataset_findings',
-        function ( array $findings, array $ability ): array {
-            if ( str_starts_with( $ability['name'], 'my-plugin/' ) ) {
-                $findings[] = new \SudoWP\Radar\Finding(
-                    ability_name:   $ability['name'],
-                    severity:       \SudoWP\Radar\Finding::SEVERITY_CRITICAL,
-                    vuln_class:     \SudoWP\Radar\Finding::VULN_DATASET_MATCH,
-                    message:        'Known vulnerable ability pattern detected (CVE-2026-1234).',
-                    recommendation: 'Update my-plugin to version 2.1.0 or later.',
-                    is_premium:     true,
-                );
-            }
-            return $findings;
-        },
-        10,
-        2
-    );
-
-= radar_dataset_status =
-
-Override the dataset status array displayed in the admin UI.
-
-  Parameters:
-    $status (array) -- default status with keys:
-      enabled       (bool)        -- false in free version.
-      label         (string)      -- UI display string.
-      last_updated  (string|null) -- ISO 8601 date or null.
-      total_entries (int)         -- 0 in free version.
-  Returns:
-    array (same shape as input)
-
-  Example:
-
-    add_filter( 'radar_dataset_status', function ( array $status ): array {
-        return [
-            'enabled'       => true,
-            'label'         => 'SudoWP Vulnerability Dataset: Connected. 4,821 entries.',
-            'last_updated'  => '2026-03-08',
-            'total_entries' => 4821,
-        ];
-    } );
-
-= radar_audit_findings =
-
-Modify the complete findings array after all rules and dataset lookups have run.
-Use this to add cross-ability findings, re-score existing findings, or suppress
-false positives. Called once per full audit run.
-
-  Parameters:
-    $findings  (array) -- complete Finding[] from the full audit.
-    $abilities (array) -- all ability data arrays scanned during this audit.
-  Returns:
-    Finding[]
-
-  Note: register with accepted_args=2 to receive both parameters.
-
-  Example:
-
-    add_filter(
-        'radar_audit_findings',
-        function ( array $findings, array $abilities ): array {
-            // Example: promote medium findings to high for a high-risk site.
-            return array_map( function ( $finding ) {
-                if ( $finding->severity === \SudoWP\Radar\Finding::SEVERITY_MEDIUM ) {
-                    return new \SudoWP\Radar\Finding(
-                        ability_name:   $finding->ability_name,
-                        severity:       \SudoWP\Radar\Finding::SEVERITY_HIGH,
-                        vuln_class:     $finding->vuln_class,
-                        message:        $finding->message,
-                        recommendation: $finding->recommendation,
-                        context:        $finding->context,
-                        is_premium:     $finding->is_premium,
-                    );
-                }
-                return $finding;
-            }, $findings );
-        },
-        10,
-        2
-    );
