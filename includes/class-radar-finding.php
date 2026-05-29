@@ -22,9 +22,11 @@ class Finding {
 	const VULN_ORPHANED_CALLBACK   = 'orphaned-callback';
 	const VULN_DATASET_MATCH       = 'dataset-match';    // Premium: SudoWP vulnerability dataset.
 	const VULN_MCP_OVEREXPOSURE    = 'mcp-overexposure'; // MCP-public ability with open permission.
-	const VULN_AI_PREVENT_FILTER_BYPASS = 'ai-prevent-filter-bypass';
-	const VULN_AI_REST_OVEREXPOSURE     = 'ai-rest-overexposure';
-	const VULN_AI_MISSING_VERSION_GATE  = 'ai-missing-version-gate';
+	const VULN_AI_PREVENT_FILTER_BYPASS   = 'ai-prevent-filter-bypass';
+	const VULN_AI_REST_OVEREXPOSURE       = 'ai-rest-overexposure';
+	const VULN_AI_MISSING_VERSION_GATE    = 'ai-missing-version-gate';
+	const VULN_HOSTING_INJECTED_ABILITY   = 'hosting-injected-ability'; // M10: hosting-provider auto-installed plugin.
+	const VULN_CONNECTOR_KEY_IN_DB        = 'connector-key-in-db';       // M10: WP 7.0 Connectors API key stored in database.
 
 	private string $remediation_hint = '';
 

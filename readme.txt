@@ -2,9 +2,9 @@
 Contributors: sudowp, thewebcitizen
 Tags: security, abilities-api, audit, scanner, permissions
 Requires at least: 6.9
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,6 +25,8 @@ SudoWP Radar is a runtime security auditor for the WordPress 6.9 Abilities API. 
 * **AI prompt filter bypass** (WP 7.0+) -- callbacks on wp_ai_client_prevent_prompt that unconditionally return false, disabling the AI prompt prevention gate sitewide. Flagged as HIGH.
 * **AI REST overexposure** (WP 7.0+) -- REST endpoints that call wp_ai_client_prompt() with no or weak permission callbacks. Flagged as CRITICAL or HIGH.
 * **AI missing version gate** (WP 7.0+) -- plugins that call wp_ai_client_prompt() without a function_exists compatibility check, causing fatal errors on WP < 7.0. Flagged as MEDIUM.
+* **Hosting-injected ability** (WP 7.0+) -- abilities registered by hosting-provider auto-installed plugins with REST exposure, without explicit site administrator consent. Flagged as HIGH. Requires premium vendor slug list.
+* **Connector key in database** (WP 7.0+) -- AI connector API keys stored as plaintext in the WordPress database via the WP 7.0 Connectors API, rather than as environment variables or PHP constants. Flagged as HIGH.
 
 **How it works:**
 
@@ -93,6 +95,12 @@ Privacy policy: https://sudowp.com/privacy-policy/
 
 == Changelog ==
 
+= 1.3.0 =
+* Added HOSTING_INJECTED_ABILITY rule (HIGH): detects abilities registered by hosting-injected plugins with REST exposure, without explicit admin consent
+* Added CONNECTOR_KEY_IN_DB rule (HIGH): detects AI connector API keys stored as plaintext in the WordPress database via the WP 7.0 Connectors API
+* New premium filter radar_hosting_vendor_slugs for dataset-delivered vendor list
+* Tested up to WordPress 7.0
+
 = 1.2.0 =
 * Added optional SudoWP vulnerability dataset integration
 * Dataset lookup adds patch availability and remediation links to matching audit findings
@@ -124,6 +132,9 @@ Privacy policy: https://sudowp.com/privacy-policy/
 * Registers `sudowp-radar/audit` ability for MCP agent access.
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+Adds two new WP 7.0 security rules: HOSTING_INJECTED_ABILITY (HIGH) and CONNECTOR_KEY_IN_DB (HIGH). Both rules are silently skipped on WP < 7.0.
 
 = 1.2.0 =
 Adds optional SudoWP vulnerability dataset integration with API key settings field. Core audit is fully functional without a key.

@@ -13,11 +13,14 @@ defined( 'ABSPATH' ) || exit;
  * premium code can still hook the same filters to augment or override
  * the built-in Dataset_Client behaviour.
  *
- * Premium filter contract (unchanged from MVP):
- *   radar_dataset_enabled  -- return bool
- *   radar_dataset_findings -- return Finding[] (non-Finding values stripped)
- *   radar_dataset_status   -- return status array
- *   radar_audit_findings   -- return Finding[] (called once per full audit)
+ * Premium filter contract:
+ *   radar_dataset_enabled        -- return bool
+ *   radar_dataset_findings       -- return Finding[] (non-Finding values stripped)
+ *   radar_dataset_status         -- return status array
+ *   radar_audit_findings         -- return Finding[] (called once per full audit)
+ *   radar_hosting_vendor_slugs   -- return string[] of ability namespace slugs to flag as
+ *                                   hosting-injected (M10: HOSTING_INJECTED_ABILITY rule).
+ *                                   Default: [] (free tier emits no findings without this list).
  */
 class Dataset {
 

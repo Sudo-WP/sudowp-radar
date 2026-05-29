@@ -7,9 +7,27 @@ defined( 'ABSPATH' ) || exit;
 
 class Rule_Engine {
 
-	const AI_PREVENT_FILTER_BYPASS = 'ai-prevent-filter-bypass';
-	const AI_REST_OVEREXPOSURE     = 'ai-rest-overexposure';
-	const AI_MISSING_VERSION_GATE  = 'ai-missing-version-gate';
+	const AI_PREVENT_FILTER_BYPASS     = 'ai-prevent-filter-bypass';
+	const AI_REST_OVEREXPOSURE         = 'ai-rest-overexposure';
+	const AI_MISSING_VERSION_GATE      = 'ai-missing-version-gate';
+	const HOSTING_INJECTED_ABILITY     = 'hosting-injected-ability';
+	const CONNECTOR_KEY_IN_DB          = 'connector-key-in-db';
+
+	/** Cached vendor slug list -- fetched once per Rule_Engine instance via filter. */
+	private ?array $vendor_slugs = null;
+
+	/**
+	 * Returns the hosting vendor slug list, fetching from the filter once per instance.
+	 * The premium filter radar_hosting_vendor_slugs delivers the list; default is empty.
+	 *
+	 * @return string[]
+	 */
+	private function get_vendor_slugs(): array {
+		if ( $this->vendor_slugs === null ) {
+			$this->vendor_slugs = (array) apply_filters( 'radar_hosting_vendor_slugs', [] );
+		}
+		return $this->vendor_slugs;
+	}
 
 	/**
 	 * Runs all static rules against a single ability data array.
@@ -27,6 +45,7 @@ class Rule_Engine {
 		$findings = array_merge( $findings, $this->rule_mcp_exposure( $ability ) );
 		$findings = array_merge( $findings, $this->rule_orphaned_callback( $ability ) );
 		$findings = array_merge( $findings, $this->rule_namespace_collision( $ability, $all ) );
+		$findings = array_merge( $findings, $this->rule_hosting_injected_ability( $ability ) );
 
 		return $findings;
 	}
@@ -351,6 +370,130 @@ class Rule_Engine {
 			);
 			$finding->set_remediation_hint(
 				__( 'Rename the ability to a unique namespace to prevent a later registration from silently overriding its permission callback.', 'sudowp-radar' )
+			);
+			$findings[] = $finding;
+		}
+
+		return $findings;
+	}
+
+	// -------------------------------------------------------------------------
+	// Rule: Hosting Injected Ability (M10)
+	// -------------------------------------------------------------------------
+
+	private function rule_hosting_injected_ability( array $a ): array {
+		$findings     = [];
+		$vendor_slugs = $this->get_vendor_slugs();
+
+		if ( empty( $vendor_slugs ) ) {
+			return $findings;
+		}
+
+		$name         = $a['name'];
+		$namespace    = strstr( $name, '/', true ) ?: $name;
+		$show_in_rest = $a['meta']['show_in_rest'] ?? false;
+
+		if ( ! in_array( $namespace, $vendor_slugs, true ) ) {
+			return $findings;
+		}
+
+		if ( ! $show_in_rest ) {
+			return $findings;
+		}
+
+		$finding = new Finding(
+			ability_name:   $name,
+			severity:       Finding::SEVERITY_HIGH,
+			vuln_class:     Finding::VULN_HOSTING_INJECTED_ABILITY,
+			message:        sprintf(
+				/* translators: %s: ability name */
+				__( 'Ability "%s" was registered by a plugin auto-installed by your hosting provider without explicit site administrator consent. This plugin is known to auto-connect to external AI services and store credentials in the database. Verify this aligns with your intended AI agent attack surface.', 'sudowp-radar' ),
+				esc_html( $name )
+			),
+			recommendation: __( 'Check wp_options for stored connection tokens from this plugin. Deactivate if AI agent access was not intentionally configured. Keys stored in wp_options are exposed to any SQL injection or object cache exploit.', 'sudowp-radar' ),
+		);
+		$finding->set_remediation_hint(
+			__( 'Check wp_options for stored connection tokens from this plugin. Deactivate if AI agent access was not intentionally configured. Keys stored in wp_options are exposed to any SQL injection or object cache exploit.', 'sudowp-radar' )
+		);
+		$findings[] = $finding;
+
+		return $findings;
+	}
+
+	// -------------------------------------------------------------------------
+	// Rule: Connector Key in DB (WP 7.0+ Connectors API) (M10)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Evaluates WP 7.0 Connectors API surface for database-stored API keys.
+	 * Silently returns empty array on WP < 7.0 where wp_get_connectors does not exist.
+	 *
+	 * Detection replicates core's key resolution order: env var -> PHP constant -> database.
+	 * A finding is emitted only when the key resolves from the database (plaintext, unencrypted).
+	 *
+	 * @return Finding[]
+	 */
+	public function evaluate_connectors_surface(): array {
+		if ( ! function_exists( 'wp_get_connectors' ) ) {
+			return [];
+		}
+
+		$findings   = [];
+		$connectors = wp_get_connectors();
+
+		foreach ( $connectors as $id => $connector ) {
+			$auth = $connector['authentication'] ?? [];
+			if ( ( $auth['method'] ?? '' ) !== 'api_key' ) {
+				continue;
+			}
+
+			$const_name   = strtoupper( (string) $id ) . '_API_KEY';
+			$setting_name = $auth['setting_name'] ?? ( 'connectors_ai_' . $id . '_api_key' );
+
+			// Replicate core's resolution order: env -> constant -> database.
+			$env_value = getenv( $const_name );
+			if ( $env_value !== false && $env_value !== '' ) {
+				continue;
+			}
+
+			if ( defined( $const_name ) && (string) constant( $const_name ) !== '' ) {
+				continue;
+			}
+
+			$db_value = get_option( $setting_name, '' );
+			if ( ! is_string( $db_value ) || $db_value === '' ) {
+				continue;
+			}
+
+			$name    = $connector['name'] ?? (string) $id;
+			$finding = new Finding(
+				ability_name:   (string) $id,
+				severity:       Finding::SEVERITY_HIGH,
+				vuln_class:     Finding::VULN_CONNECTOR_KEY_IN_DB,
+				message:        sprintf(
+					/* translators: 1: connector name, 2: option name */
+					__( 'AI connector "%1$s" resolves its API key from the database (option "%2$s"). Database-stored connector keys are not encrypted, only masked in the admin UI. Any SQL injection or object cache exposure on this site leaks this key directly.', 'sudowp-radar' ),
+					esc_html( $name ),
+					esc_html( $setting_name )
+				),
+				recommendation: sprintf(
+					/* translators: %s: constant/env var name */
+					__( 'Move this key out of the database. Define it as the environment variable %s or as a PHP constant of the same name in wp-config.php. WordPress 7.0 prefers an environment variable first, then a constant, then the database.', 'sudowp-radar' ),
+					esc_html( $const_name )
+				),
+				context:        [
+					'connector_id' => (string) $id,
+					'setting_name' => $setting_name,
+					'const_name'   => $const_name,
+				],
+			);
+			$finding->set_remediation_hint(
+				sprintf(
+					/* translators: 1: constant/env var name, 2: option name */
+					__( 'Define %1$s as an environment variable or PHP constant in wp-config.php, then clear the stored value from the "%2$s" option.', 'sudowp-radar' ),
+					esc_html( $const_name ),
+					esc_html( $setting_name )
+				)
 			);
 			$findings[] = $finding;
 		}

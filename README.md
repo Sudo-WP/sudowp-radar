@@ -73,6 +73,13 @@ These rules run only on WordPress 7.0+ where the AI Client API is available. The
 | AI REST Overexposure | CRITICAL / HIGH | REST endpoint calls `wp_ai_client_prompt()` with no or weak permission callback |
 | AI Missing Version Gate | MEDIUM | Plugin calls `wp_ai_client_prompt()` without a `function_exists` compatibility check |
 
+### WP 7.0 Server-Side Attack Surface Rules
+
+| Rule | Severity | Description |
+|------|----------|-------------|
+| Hosting Injected Ability | HIGH | Ability registered by a hosting-provider auto-installed plugin with REST exposure, without explicit site administrator consent. Requires premium `radar_hosting_vendor_slugs` filter to produce findings. |
+| Connector Key in DB | HIGH | AI connector API key resolves from the WordPress database (via the WP 7.0 Connectors API) rather than from an environment variable or PHP constant. Database-stored keys are unencrypted. |
+
 ---
 
 ## MCP Integration
@@ -95,6 +102,7 @@ The free plugin ships four WordPress filters that allow a premium layer to exten
 | `radar_dataset_findings` | Inject findings from the dataset (CVE references, CVSS scores, patch links) |
 | `radar_dataset_status` | Inject dataset metadata for admin UI display |
 | `radar_audit_findings` | Modify the full findings array post-audit |
+| `radar_hosting_vendor_slugs` | Return `string[]` of ability namespace slugs to flag as hosting-injected (HOSTING_INJECTED_ABILITY rule) |
 
 ---
 
@@ -113,11 +121,13 @@ The free plugin ships four WordPress filters that allow a premium layer to exten
 
 ## Compatibility Notes
 
-Tested against WordPress 6.9.4 and PHP 8.3. The Abilities API is not available below WP 6.9 -- the plugin will display an admin notice and deactivate gracefully on older installs.
+Tested against WordPress 7.0 and PHP 8.3. The Abilities API is not available below WP 6.9 -- the plugin will display an admin notice and deactivate gracefully on older installs.
 
 WP 6.9 validates both `execute_callback` and `permission_callback` as callable at registration time, which makes the Orphaned Callback and Namespace Collision rules unreachable via normal API usage in the current WordPress version. Both rules are retained as defensive code for future API changes.
 
 The three WP 7.0 AI Client rules are gated behind `function_exists('wp_ai_client_prompt')`. On WP 6.9 they produce zero findings and zero errors.
+
+The WP 7.0 server-side rules (HOSTING_INJECTED_ABILITY, CONNECTOR_KEY_IN_DB) are likewise silently skipped on WP < 7.0. CONNECTOR_KEY_IN_DB is gated behind `function_exists('wp_get_connectors')`. HOSTING_INJECTED_ABILITY requires a non-empty vendor slug list delivered via the `radar_hosting_vendor_slugs` filter -- the free tier emits no findings by design.
 
 ---
 
